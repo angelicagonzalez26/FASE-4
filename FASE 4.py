@@ -3,18 +3,18 @@
 from abc import ABC, abstractmethod
 import logging
 
-# =========================================================
+
 # CONFIGURACIÓN DEL SISTEMA DE LOGS (EXCEPCIONES Y ERRORES)
-# =========================================================
+
 logging.basicConfig(
     filename='sistema_errores.log',
     level=logging.ERROR,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# =========================================================
+
 # 1. EXCEPCIONES PERSONALIZADAS
-# =========================================================
+
 class ErrorNegocio(Exception):
     """Excepción base para errores de negocio en el sistema."""
     pass
@@ -24,9 +24,9 @@ class ErrorClienteInvalido(ErrorNegocio):
     pass
 
 
-# =========================================================
+
 # 2. CLASE CLIENTE (Validaciones y Encapsulación)
-# =========================================================
+
 class Cliente:
     def __init__(self, nombre: str, identificacion: str):
         self.nombre = nombre
@@ -47,9 +47,8 @@ class Cliente:
         return f"Cliente: {self.nombre} (ID: {self.identificacion})"
 
 
-# =========================================================
 # 3. CLASE ABSTRACTA BASE (Servicios)
-# =========================================================
+
 class Servicio(ABC):
     """
     Clase abstracta que sirve como plantilla general para los servicios
@@ -68,9 +67,9 @@ class Servicio(ABC):
         return f"Servicio: {self.nombre_servicio} | Costo Base: ${self.costo_base}"
 
 
-# =========================================================
+
 # 4. CLASES HIJAS DE SERVICIOS (Herencia y Polimorfismo)
-# =========================================================
+
 class ReservaSala(Servicio):
     def __init__(self, nombre_servicio: str, costo_base: float, horas: int):
         super().__init__(nombre_servicio, costo_base)
@@ -104,9 +103,9 @@ class AsesoriaEspecializada(Servicio):
         return self.costo_base
 
 
-# =========================================================
+
 # 5. BLOQUE PRINCIPAL DE PRUEBAS (Simulación de Operaciones)
-# =========================================================
+
 if __name__ == "__main__":
     print("=== INICIANDO SISTEMA DE GESTIÓN SOFTWARE FJ ===")
     
