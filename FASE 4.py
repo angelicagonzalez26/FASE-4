@@ -1,1 +1,1 @@
-#Proyecto Face 4 - Grupo: 
+#Proyecto Face 4 - Grupo: JOHANNA PAOLA BRICENO MORENO - MARIA ANGELICA GONZALEZ ARTUNDUAGA
