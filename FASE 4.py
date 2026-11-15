@@ -1,140 +1,248 @@
-#Proyecto Face 4 - Grupo: JOHANNA PAOLA BRICENO MORENO - MARIA ANGELICA GONZALEZ ARTUNDUAGA
+#---------------------------------------------------------------------------
+#Grupo: JOHANNA PAOLA BRICENO MORENO - MARIA ANGELICA GONZALEZ ARTUNDUAGA  
+#Grupo: 213023_468  
+#Programa: Ingeniería Multimedia - Programación  
+#Código Fuente: autoría propia
+#Face 4 - Componente práctico - Prácticas simuladas
+#---------------------------------------------------------------------------
 
 from abc import ABC, abstractmethod
 import logging
 
-
-# CONFIGURACIÓN DEL SISTEMA DE LOGS (EXCEPCIONES Y ERRORES)
-
+# CONFIGURACION DEL ARCHIVO DE REGISTRO DEL SISTEMA (LOG)
 logging.basicConfig(
-    filename='sistema_errores.log',
-    level=logging.ERROR,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    filename="software_fj.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    encoding="utf-8"
 )
+# EXCEPCIONES PERSONALIZADAS
 
-
-# 1. EXCEPCIONES PERSONALIZADAS
-
-class ErrorNegocio(Exception):
-    """Excepción base para errores de negocio en el sistema."""
-    pass
-
-class ErrorClienteInvalido(ErrorNegocio):
-    """Se lanza cuando los datos del cliente no son válidos."""
+class ErrorSistema(Exception):
+    """Clase general para los errores del sistema."""
     pass
 
 
-
-# 2. CLASE CLIENTE (Validaciones y Encapsulación)
-
-class Cliente:
-    def __init__(self, nombre: str, identificacion: str):
-        self.nombre = nombre
-        self.identificacion = identificacion
-
-    @property
-    def identificacion(self):
-        return self._identificacion
-
-    @identificacion.setter
-    def identificacion(self, valor):
-        if not valor.isdigit():
-            logging.error(f"Intento de registro con ID no numérica: {valor}")
-            raise ErrorClienteInvalido("El documento de identidad debe contener solo números.")
-        self._identificacion = valor
-
-    def obtener_info(self) -> str:
-        return f"Cliente: {self.nombre} (ID: {self.identificacion})"
+class DatoInvalidoError(ErrorSistema):
+    pass
 
 
-# 3. CLASE ABSTRACTA BASE (Servicios)
+class ClienteNoEncontradoError(ErrorSistema):
+    pass
 
-class Servicio(ABC):
-    """
-    Clase abstracta que sirve como plantilla general para los servicios
-    de la empresa Software FJ.
-    """
-    def __init__(self, nombre_servicio: str, costo_base: float):
-        self.nombre_servicio = nombre_servicio
-        self.costo_base = costo_base
+
+class ServicioNoDisponibleError(ErrorSistema):
+    pass
+
+
+class ReservaError(ErrorSistema):
+    pass
+
+
+class OperacionNoPermitidaError(ErrorSistema):
+    pass
+    
+# AGREGAR CLASE ABSTRACTA ENTIDAD
+
+class Entidad(ABC):
+    def __init__(self, identificacion):
+        if not isinstance(identificacion, str) or not identificacion.strip():
+            raise DatoInvalidoError("La identificacion no puede estar vacia.")
+
+        self.__identificacion = identificacion.strip()
+
+    def get_identificacion(self):
+        return self.__identificacion
 
     @abstractmethod
-    def calcular_costo(self) -> float:
-        """Método abstracto que cada clase hija implementará obligatoriamente."""
+    def mostrar_informacion(self):
+        pass
+        
+# AGREGAR CLASE CLIENTE
+
+class Cliente(Entidad):
+    def __init__(self, identificacion, nombre, correo, telefono):
+        super().__init__(identificacion)
+
+        if not isinstance(nombre, str) or not nombre.strip():
+            raise DatoInvalidoError("El nombre no puede estar vacio.")
+
+        if not isinstance(correo, str) or "@" not in correo or "." not in correo:
+            raise DatoInvalidoError("El correo electronico no es valido.")
+
+        if not isinstance(telefono, str) or not telefono.isdigit() or len(telefono) < 7:
+            raise DatoInvalidoError("El telefono debe tener al menos 7 digitos.")
+
+        self.__nombre = nombre.strip()
+        self.__correo = correo.strip()
+        self.__telefono = telefono.strip()
+
+    def get_nombre(self):
+        return self.__nombre
+
+    def mostrar_informacion(self):
+        return (
+            f"Identificacion: {self.get_identificacion()} | "
+            f"Nombre: {self.__nombre} | "
+            f"Correo: {self.__correo} | "
+            f"Telefono: {self.__telefono}"
+        )
+
+# AGREGAR CLASE ABSTRACTA SERVICIO
+
+class Servicio(ABC):
+    def __init__(self, nombre, precio):
+        if not isinstance(nombre, str) or not nombre.strip():
+            raise DatoInvalidoError("El nombre del servicio es obligatorio.")
+
+        if not isinstance(precio, (int, float)) or isinstance(precio, bool) or precio <= 0:
+            raise DatoInvalidoError("El precio debe ser un numero mayor que cero.")
+
+        self._nombre = nombre.strip()
+        self._precio = float(precio)
+        self.__disponible = True
+
+    def get_nombre(self):
+        return self._nombre
+
+    def esta_disponible(self):
+        return self.__disponible
+
+    def cambiar_disponibilidad(self, estado):
+        if not isinstance(estado, bool):
+            raise DatoInvalidoError("El estado debe ser verdadero o falso.")
+        self.__disponible = estado
+
+    def calcular_total(self, duracion, descuento=0, impuesto=0, **datos):
+        """
+        Metodo con parametros opcionales:
+        - Solo duracion.
+        - Duracion y descuento.
+        - Duracion, descuento e impuesto.
+        """
+        self.validar_parametros(duracion, **datos)
+        self.validar_porcentajes(descuento, impuesto)
+
+        costo = self.calcular_costo(duracion, **datos)
+        subtotal = costo - (costo * descuento / 100)
+        total = subtotal + (subtotal * impuesto / 100)
+
+        return round(total, 2)
+
+    @staticmethod
+    def validar_porcentajes(descuento, impuesto):
+        if not isinstance(descuento, (int, float)) or not 0 <= descuento <= 100:
+            raise DatoInvalidoError("El descuento debe estar entre 0 y 100.")
+
+        if not isinstance(impuesto, (int, float)) or not 0 <= impuesto <= 100:
+            raise DatoInvalidoError("El impuesto debe estar entre 0 y 100.")
+
+    def reservar_recursos(self, **datos):
+        """Se puede sobrescribir en servicios que manejen cantidades."""
+        if not self.esta_disponible():
+            raise ServicioNoDisponibleError(
+                f"El servicio {self._nombre} no esta disponible."
+            )
+        self.cambiar_disponibilidad(False)
+
+    def liberar_recursos(self, **datos):
+        self.cambiar_disponibilidad(True)
+
+    @abstractmethod
+    def calcular_costo(self, duracion, **datos):
         pass
 
-    def obtener_descripcion(self) -> str:
-        return f"Servicio: {self.nombre_servicio} | Costo Base: ${self.costo_base}"
+    @abstractmethod
+    def describir_servicio(self):
+        pass
 
+    @abstractmethod
+    def validar_parametros(self, duracion, **datos):
+        pass
 
-
-# 4. CLASES HIJAS DE SERVICIOS (Herencia y Polimorfismo)
+#SERVICIO DE RESERVA DE SALAS
 
 class ReservaSala(Servicio):
-    def __init__(self, nombre_servicio: str, costo_base: float, horas: int):
-        super().__init__(nombre_servicio, costo_base)
-        self.horas = horas
+    def __init__(self, precio_por_hora, capacidad):
+        super().__init__("Reserva de sala", precio_por_hora)
 
-    def calcular_costo(self) -> float:
-        return self.costo_base * self.horas
+        if not isinstance(capacidad, int) or isinstance(capacidad, bool) or capacidad <= 0:
+            raise DatoInvalidoError("La capacidad debe ser un entero positivo.")
 
+        self.__capacidad = capacidad
+
+    def validar_parametros(self, duracion, **datos):
+        if not isinstance(duracion, (int, float)) or isinstance(duracion, bool) or duracion <= 0:
+            raise DatoInvalidoError("La duracion debe ser mayor que cero.")
+
+        personas = datos.get("personas")
+        if not isinstance(personas, int) or isinstance(personas, bool) or personas <= 0:
+            raise DatoInvalidoError("Debe indicar una cantidad valida de personas.")
+
+        if personas > self.__capacidad:
+            raise DatoInvalidoError("La cantidad de personas supera la capacidad de la sala.")
+
+    def calcular_costo(self, duracion, **datos):
+        self.validar_parametros(duracion, **datos)
+        return self._precio * duracion
+
+    def describir_servicio(self):
+        return (
+            f"{self.get_nombre()} | Capacidad: {self.__capacidad} personas | "
+            f"Precio por hora: ${self._precio:,.0f}"
+        )
+
+#FUNCION SERVICIO DE ALQUILER DE EQUIPOS
 
 class AlquilerEquipo(Servicio):
-    def __init__(self, nombre_servicio: str, costo_base: float, dias: int):
-        super().__init__(nombre_servicio, costo_base)
-        self.dias = dias
+    def __init__(self, precio_por_dia, cantidad_disponible):
+        super().__init__("Alquiler de equipos", precio_por_dia)
 
-    def calcular_costo(self) -> float:
-        # Descuento del 10% si alquila por más de 3 días
-        if self.dias > 3:
-            return (self.costo_base * self.dias) * 0.90
-        return self.costo_base * self.dias
+        if (
+            not isinstance(cantidad_disponible, int)
+            or isinstance(cantidad_disponible, bool)
+            or cantidad_disponible <= 0
+        ):
+            raise DatoInvalidoError("La cantidad de equipos debe ser positiva.")
+
+        self.__cantidad_disponible = cantidad_disponible
+
+    def get_cantidad_disponible(self):
+        return self.__cantidad_disponible
+
+    def validar_parametros(self, duracion, **datos):
+        if not isinstance(duracion, (int, float)) or isinstance(duracion, bool) or duracion <= 0:
+            raise DatoInvalidoError("La duracion del alquiler debe ser mayor que cero.")
+
+        cantidad = datos.get("cantidad")
+        if not isinstance(cantidad, int) or isinstance(cantidad, bool) or cantidad <= 0:
+            raise DatoInvalidoError("Debe indicar una cantidad entera de equipos.")
+
+        if cantidad > self.__cantidad_disponible:
+            raise ServicioNoDisponibleError("No hay suficientes equipos disponibles.")
+
+    def calcular_costo(self, duracion, **datos):
+        self.validar_parametros(duracion, **datos)
+        cantidad = datos["cantidad"]
+        return self._precio * duracion * cantidad
+
+    def reservar_recursos(self, **datos):
+        cantidad = datos.get("cantidad")
+        self.validar_parametros(1, cantidad=cantidad)
+        self.__cantidad_disponible -= cantidad
+
+    def liberar_recursos(self, **datos):
+        cantidad = datos.get("cantidad", 0)
+        self.__cantidad_disponible += cantidad
+
+    def describir_servicio(self):
+        return (
+            f"{self.get_nombre()} | Equipos disponibles: "
+            f"{self.__cantidad_disponible} | Precio por dia y equipo: "
+            f"${self._precio:,.0f}"
+        )
+# =====================================================
+# 8. SERVICIO DE ASESORIAS
+# =====================================================
 
 
-class AsesoriaEspecializada(Servicio):
-    def __init__(self, nombre_servicio: str, costo_base: float, nivel_complexidad: str):
-        super().__init__(nombre_servicio, costo_base)
-        self.nivel_complexidad = nivel_complexidad
-
-    def calcular_costo(self) -> float:
-        # Recargo del 20% si la asesoría es avanzada
-        if self.nivel_complexidad.lower() == "avanzada":
-            return self.costo_base * 1.20
-        return self.costo_base
-
-
-
-# 5. BLOQUE PRINCIPAL DE PRUEBAS (Simulación de Operaciones)
-
-if __name__ == "__main__":
-    print("=== INICIANDO SISTEMA DE GESTIÓN SOFTWARE FJ ===")
-    
-    # Prueba 1: Manejo de errores con excepciones personalizadas y Try/Except
-    try:
-        print("\nIntentando registrar un cliente con datos inválidos...")
-        c_invalido = Cliente("Maria Gomez", "123ABC45") # Disparará error por letras
-    except ErrorClienteInvalido as e:
-        print(f"[ERROR CAPTURADO EXITOSAMENTE]: {e}")
-        print("El sistema continúa funcionando de forma estable.")
-
-    # Prueba 2: Registro exitoso de Cliente y Servicios con Polimorfismo
-    try:
-        print("\nRegistrando cliente y servicios correctos...")
-        cliente_valido = Cliente("Carlos Perez", "1020304050")
-        print(cliente_valido.obtener_info())
-
-        # Creación de servicios polimórficos
-        servicios = [
-            ReservaSala("Sala de Juntas Principal", 50.0, 4),
-            AlquilerEquipo("Laptop Dell Core i7", 35.0, 5),
-            AsesoriaEspecializada("Consultoría de Arquitectura Python", 120.0, "avanzada")
-        ]
-
-        # Recorremos la lista aplicando polimorfismo con un solo ciclo
-        for serv in servicios:
-            print(f"- {serv.obtener_descripcion()} | Total a pagar: ${serv.calcular_costo():.2f}")
-
-    except Exception as ex:
-        print(f"Error inesperado: {ex}")
-
-    print("\n=== PRUEBA FINALIZADA CON ÉXITO ===")
