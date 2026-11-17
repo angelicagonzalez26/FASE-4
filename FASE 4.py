@@ -1,5 +1,5 @@
 #---------------------------------------------------------------------------
-#Grupo: JOHANNA PAOLA BRICENO MORENO - MARIA ANGELICA GONZALEZ ARTUNDUAGA  
+#Grupo: JOHANNA PAOLA BRICEÑO MORENO - MARIA ANGELICA GONZALEZ ARTUNDUAGA  
 #Grupo: 213023_468  
 #Programa: Ingeniería Multimedia - Programación  
 #Código Fuente: autoría propia
