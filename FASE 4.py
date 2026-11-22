@@ -9,14 +9,14 @@
 from abc import ABC, abstractmethod
 import logging
 
-# CONFIGURACION DEL ARCHIVO DE REGISTRO DEL SISTEMA (LOG)
+# CONFIGURACION DEL ARCHIVO DE REGISTRO DEL SISTEMA (LOG) - Maria
 logging.basicConfig(
     filename="software_fj.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     encoding="utf-8"
 )
-# EXCEPCIONES PERSONALIZADAS
+# EXCEPCIONES PERSONALIZADAS - Maria
 
 class ErrorSistema(Exception):
     """Clase general para los errores del sistema."""
@@ -42,7 +42,7 @@ class ReservaError(ErrorSistema):
 class OperacionNoPermitidaError(ErrorSistema):
     pass
     
-# AGREGAR CLASE ABSTRACTA ENTIDAD
+# AGREGAR CLASE ABSTRACTA ENTIDAD - Maria
 
 class Entidad(ABC):
     def __init__(self, identificacion):
@@ -58,7 +58,7 @@ class Entidad(ABC):
     def mostrar_informacion(self):
         pass
         
-# AGREGAR CLASE CLIENTE
+# AGREGAR CLASE CLIENTE - Maria
 
 class Cliente(Entidad):
     def __init__(self, identificacion, nombre, correo, telefono):
@@ -88,7 +88,7 @@ class Cliente(Entidad):
             f"Telefono: {self.__telefono}"
         )
 
-# AGREGAR CLASE ABSTRACTA SERVICIO
+# AGREGAR CLASE ABSTRACTA SERVICIO - Maria
 
 class Servicio(ABC):
     def __init__(self, nombre, precio):
@@ -160,7 +160,7 @@ class Servicio(ABC):
     def validar_parametros(self, duracion, **datos):
         pass
 
-#SERVICIO DE RESERVA DE SALAS
+#SERVICIO DE RESERVA DE SALAS - Maria
 
 class ReservaSala(Servicio):
     def __init__(self, precio_por_hora, capacidad):
@@ -192,7 +192,7 @@ class ReservaSala(Servicio):
             f"Precio por hora: ${self._precio:,.0f}"
         )
 
-#FUNCION SERVICIO DE ALQUILER DE EQUIPOS
+#FUNCION SERVICIO DE ALQUILER DE EQUIPOS - Maria
 
 class AlquilerEquipo(Servicio):
     def __init__(self, precio_por_dia, cantidad_disponible):
